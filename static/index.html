@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>悠米 AI · 对话空间</title>
+
+    <!-- Google Font: Inter (现代、干净) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet" />
+
+    <!-- Lucide 图标库 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Feather icons 作为补充矢量图标 -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+    <div id="app" :class="['app-container', theme]">
+        <!-- 顶部导航栏 -->
+        <header class="top-bar glass-panel">
+            <div class="brand">
+                <i data-lucide="sparkles" class="icon sparkle-icon"></i>
+                <h1>悠米 AI</h1>
+            </div>
+            <div class="actions">
+                <!-- 主题切换 -->
+                <button class="icon-btn theme-toggle" @click="toggleTheme" :title="theme === 'light' ? '切换到深色模式' : '切换到浅色模式'">
+                    <i data-lucide="sun" v-if="theme === 'light'"></i>
+                    <i data-lucide="moon" v-else></i>
+                </button>
+                <!-- 清空对话 -->
+                <button class="icon-btn" @click="clearChat" title="清空对话">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 对话消息区域 -->
+        <main class="chat-area" ref="chatContainer">
+            <div v-if="messages.length === 0" class="welcome-message">
+                <div class="welcome-icon">
+                    <i data-lucide="message-circle" class="large-icon"></i>
+                </div>
+                <h2>你好，我是悠米</h2>
+                <p>你的 AI 助手，随时为你服务 ✨</p>
+            </div>
+
+            <div v-for="(msg, index) in messages" :key="index" :class="['message-row', msg.role]">
+                <div class="avatar" v-if="msg.role === 'assistant'">
+                    <i data-lucide="bot"></i>
+                </div>
+                <div :class="['bubble', msg.role]">
+                    <div class="bubble-content" v-html="msg.content"></div>
+                    <!-- 复制按钮仅在助手消息完成时显示 -->
+                    <button v-if="msg.role === 'assistant' && !msg.streaming" class="copy-btn" @click="copyText(msg.text)" title="复制回复">
+                        <i data-lucide="copy" size="14"></i>
+                    </button>
+                </div>
+                <div class="avatar" v-if="msg.role === 'user'">
+                    <i data-lucide="user"></i>
+                </div>
+            </div>
+
+            <!-- 流式输出中的临时气泡 -->
+            <div v-if="streaming" class="message-row assistant">
+                <div class="avatar">
+                    <i data-lucide="bot"></i>
+                </div>
+                <div class="bubble assistant streaming">
+                    <div class="bubble-content" v-html="streamContent"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 底部输入区 -->
+        <footer class="input-area glass-panel">
+            <div class="input-wrapper">
+                <textarea
+                    ref="userInput"
+                    v-model="userMessage"
+                    @keydown.enter.exact.prevent="sendMessage"
+                    @keydown.enter.shift.exact="newline"
+                    placeholder="输入消息，回车发送，Shift+回车换行..."
+                    rows="1"
+                    :disabled="streaming"
+                ></textarea>
+                <button class="send-btn" @click="sendMessage" :disabled="streaming || !userMessage.trim()">
+                    <i data-lucide="send"></i>
+                </button>
+            </div>
+            <div class="status" v-if="connectionStatus !== 'connected'">
+                <span class="status-dot" :class="connectionStatus"></span>
+                {{ connectionStatus === 'connecting' ? '连接中...' : '未连接' }}
+            </div>
+            <div class="status connected" v-else>
+                <span class="status-dot connected"></span> 已连接
+            </div>
+        </footer>
+    </div>
+
+    <!-- 自定义脚本 -->
+    <script src="/static/app.js"></script>
+    <script>
+        // 初始化 Lucide 和 Feather 图标
+        lucide.createIcons();
+        feather.replace();
+    </script>
+</body>
+</html>

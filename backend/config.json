@@ -1,0 +1,8 @@
+{
+    "port": 8000,
+    "model": "deepseek-r1:1.5b",
+    "theme_color": "#2410ff",
+    "background_image": "",
+    "logs_dir": "logs",
+    "log_file": "backend.log"
+}
